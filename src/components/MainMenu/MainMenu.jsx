@@ -1,19 +1,41 @@
 import React, { Component } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar, Nav, Container, Row, Col, NavDropdown } from 'react-bootstrap';
-import './MainMenu.css'; // Import the new CSS file for custom styles
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser } from '@fortawesome/free-solid-svg-icons'; // Import the user icon
+import axios from 'axios';
+import './MainMenu.css';
 
 // Wrapper function to pass the navigate function to the class component
 function MainMenuWrapper() {
-  const navigate = useNavigate(); // Get the navigate function from React Router v6
+  const navigate = useNavigate();
   return <MainMenu navigate={navigate} />;
 }
 
 class MainMenu extends Component {
   constructor(props) {
     super(props);
+    this.state = {
+      ipAddress: '',
+      location: '',
+    };
+  }
+
+  componentDidMount() {
+    // Fetch IP Address
+    axios.get('https://api.ipify.org?format=json')
+      .then(response => {
+        const ip = response.data.ip;
+        this.setState({ ipAddress: ip });
+        
+        // Fetch Location based on IP Address
+        return axios.get(`https://ipapi.co/${ip}/json/`);
+      })
+      .then(response => {
+        const location = `${response.data.city}, ${response.data.region}, ${response.data.country_name}`;
+        this.setState({ location });
+      })
+      .catch(error => {
+        console.error('Error fetching IP and location:', error);
+      });
   }
 
   render() {
@@ -38,11 +60,7 @@ class MainMenu extends Component {
 
               {/* User Icon with Dropdown */}
               <Nav className="ml-auto">
-                <NavDropdown
-                  title={<FontAwesomeIcon icon={faUser} />}
-                  id="user-dropdown"
-                  align="end"
-                >
+                <NavDropdown title="User" id="user-dropdown" align="end">
                   <NavDropdown.Item href="#profile">Profile</NavDropdown.Item>
                   <NavDropdown.Item href="#settings">Settings</NavDropdown.Item>
                   <NavDropdown.Divider />
@@ -73,13 +91,13 @@ class MainMenu extends Component {
           <Container>
             <Row>
               <Col>
-                <p>666 lượt khám</p>
+                <p>IP Address: {this.state.ipAddress}</p>
+              </Col>
+              <Col>
+                <p>Location: {this.state.location}</p>
               </Col>
               <Col>
                 <p>[Admin] - duongpq</p>
-              </Col>
-              <Col>
-                <p>Phòng khám Đa khoa Bình Minh TEST</p>
               </Col>
               <Col>
                 <p>Thứ 4, 28/02/2018 21:52</p>
